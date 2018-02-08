@@ -1,5 +1,11 @@
-# Object file
-*.o
+# Object files
+lib
+obj
 
 # Ada Library Information
 *.ali
+
+# Miscellaneous cruft
+*.cgpr
+*.db
+*.xml
