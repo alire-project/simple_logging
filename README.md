@@ -30,3 +30,23 @@ Warning: Bye!
 -->> Checking...
 ERROR: Something failed
 ```
+
+Alternatively, you can not use the package and do it like this:
+
+```ada
+with Simple_Logging;
+
+procedure Hello_World is
+   package Log renames Simple_Logging;
+begin
+   Log.Info ("Hello, world!");                      
+   Log.Warning ("Bye!"); -- Warning level
+   Log.Debug ("That took 3 mins to write"); 
+   
+   Simple_Logging.Level := Debug;           
+   
+   Log.Debug ("Checking...");
+   Log.Error ("Something failed");
+end Hello_World;
+```
+With the possible benefit that you cannot forget the logging level.
