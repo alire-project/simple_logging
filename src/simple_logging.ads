@@ -23,5 +23,6 @@ package Simple_Logging with Preelaborate is
    procedure Info    (Msg : String);
    procedure Detail  (Msg : String);
    procedure Debug   (Msg : String);
+   procedure Never   (Msg : String) is null; -- Quietly drop
 
 end Simple_Logging;
