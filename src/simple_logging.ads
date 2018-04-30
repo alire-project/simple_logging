@@ -7,6 +7,7 @@ package Simple_Logging with Preelaborate is
                    Detail,
                    Debug);
    --  From most important to less important
+   --  Or, from less verbose to more verbose
 
    Level : Levels := Info;
    --  Any message at the same level or below will be output to console
