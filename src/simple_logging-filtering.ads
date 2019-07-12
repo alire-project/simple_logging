@@ -45,4 +45,18 @@ package Simple_Logging.Filtering with Preelaborate is
    --  Add_Exception ("bar"); -- unless they contain "bar" too.
    --  In whitelist mode, something similar but in reverse will happen.
 
+   function Add_From_String (Str : String;
+                             Say : Boolean := False) return Boolean;
+   --  Process an entire string (e.g. coming from a command-line argument) to
+   --  configure filtering. String syntax is: (+|-)[scope][[,](+|-)scope]...
+   --  Will return False if syntax is wrong. Lists will be emptied in that case.
+   --  If Say = True, the mode/scopes will be written to stdout for reference.
+   --  Examples:
+   --    + (empty whitelist, nothing will pass)
+   --    +foo,-bar (whitelist foo, except bar)
+   --    - (empty blacklist, nothing will be blocked)
+   --    -foo,+bar (blacklist foo, except bar)
+   --    -foo+bar (commas are optional)
+   --  The very first sign sets the mode to whitelist (+) or blacklist (-).
+
 end Simple_Logging.Filtering;
