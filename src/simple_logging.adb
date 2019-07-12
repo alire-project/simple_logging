@@ -1,24 +1,29 @@
 with GNAT.IO;
 
-package body Simple_Logging is
+with Simple_Logging.Decorators;
+with Simple_Logging.Filtering;
 
-   function Prefix (Level : Levels) return String is
-     (case Level is
-         when Always  => "",
-         when Error   => "ERROR: ",
-         when WARNING => "Warning: ",
-         when Info    => "",
-         when Detail  => "-> ",
-         when Debug   => "-->> ");
+package body Simple_Logging is
 
    ---------
    -- Log --
    ---------
 
-   procedure Log (S : String; Level : Levels := Info) is
+   procedure Log (Message  : String;
+                  Level    : Levels := Info;
+                  Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                  Location : String := Gnat.Source_Info.Source_Location) is
    begin
-      if Level <= Simple_Logging.Level then
-         GNAT.IO.Put_Line (Prefix (Level) & S);
+      if Level <= Simple_Logging.Level and then
+        Filtering.Accept_Message (Message, Level, Entity, Location)
+      then
+         GNAT.IO.Put_Line
+           (Decorators.Location_Decorator
+              (Entity,
+               Location,
+               Decorators.Level_Decorator
+                 (Level,
+                  Message)));
       end if;
    end Log;
 
@@ -26,54 +31,66 @@ package body Simple_Logging is
    -- Always --
    ------------
 
-   procedure Always  (Msg : String) is
+   procedure Always  (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location) is
    begin
-      Log (Msg, Always);
+      Log (Msg, Always, Entity, Location);
    end Always;
 
    -----------
    -- Error --
    -----------
 
-   procedure Error   (Msg : String) is
+   procedure Error   (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location) is
    begin
-      Log (Msg, Error);
+      Log (Msg, Error, Entity, Location);
    end Error;
 
    -------------
    -- Warning --
    -------------
 
-   procedure Warning (Msg : String) is
+   procedure Warning (Msg : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location) is
    begin
-      Log (Msg, Warning);
+      Log (Msg, Warning, Entity, Location);
    end Warning;
 
    ----------
    -- Info --
    ----------
 
-   procedure Info    (Msg : String) is
+   procedure Info    (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location) is
    begin
-      Log (Msg, Info);
+      Log (Msg, Info, Entity, Location);
    end Info;
 
    ------------
    -- Detail --
    ------------
 
-   procedure Detail  (Msg : String) is
+   procedure Detail  (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location) is
    begin
-      Log (Msg, Detail);
+      Log (Msg, Detail, Entity, Location);
    end Detail;
 
    -----------
    -- Debug --
    -----------
 
-   procedure Debug   (Msg : String) is
+   procedure Debug   (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location) is
    begin
-      Log (Msg, Debug);
+      Log (Msg, Debug, Entity, Location);
    end Debug;
 
 end Simple_Logging;

@@ -1,4 +1,12 @@
+with GNAT.Source_Info;
+
 package Simple_Logging with Preelaborate is
+
+   --  Since the purpose is to have simultaneously "simple" yet flexible
+   --  logging, this package enables the configuration of a single logger
+   --  to console.
+   --  That said, a number of customization options are available with the
+   --  Decorators/Filtering child packages.
 
    type Levels is (Always,
                    Error,
@@ -12,18 +20,37 @@ package Simple_Logging with Preelaborate is
    Level : Levels := Info;
    --  Any message at the same level or below will be output to console
 
-   procedure Log (S : String; Level : Levels := Info);
+   procedure Log (Message  : String;
+                  Level    : Levels := Info;
+                  Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                  Location : String := Gnat.Source_Info.Source_Location);
    --  Report a log message
 
    --  Log by level.
-   --  Useful if you want to use a package renaming as prefix, e.g.: Log.Info ("Blah");
+   --  Useful if you want to use a package renaming as prefix,
+   --  e.g. : Log.Info ("Blah");
 
-   procedure Always  (Msg : String);
-   procedure Error   (Msg : String);
-   procedure Warning (Msg : String);
-   procedure Info    (Msg : String);
-   procedure Detail  (Msg : String);
-   procedure Debug   (Msg : String);
-   procedure Never   (Msg : String) is null; -- Quietly drop
+   procedure Always  (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location);
+   procedure Error   (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location);
+   procedure Warning (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location);
+   procedure Info    (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location);
+   procedure Detail  (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location);
+   procedure Debug   (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location);
+   procedure Never   (Msg      : String;
+                      Entity   : String := Gnat.Source_Info.Enclosing_Entity;
+                      Location : String := Gnat.Source_Info.Source_Location)
+   is null; -- Quietly drop
 
 end Simple_Logging;
