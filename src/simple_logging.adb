@@ -183,13 +183,16 @@ package body Simple_Logging is
 
    procedure Step (This : in out Ongoing) is
       pragma Unreferenced (This);
+      Line : constant String := Build_Status_Line;
    begin
-      Clear_Status_Line;
-      GNAT.IO.Put (ASCII.CR & Build_Status_Line);
+      if Line'Length > 0 then
+         Clear_Status_Line;
+         GNAT.IO.Put (ASCII.CR & Build_Status_Line);
 
-      Ind_Pos := Ind_Pos + 1;
-      if Ind_Pos > Indicator'Last then
-         Ind_Pos := Indicator'First;
+         Ind_Pos := Ind_Pos + 1;
+         if Ind_Pos > Indicator'Last then
+            Ind_Pos := Indicator'First;
+         end if;
       end if;
    end Step;
 
