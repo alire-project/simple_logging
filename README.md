@@ -1,3 +1,5 @@
+[![build](https://github.com/alire-project/simple_logging/workflows/Build/badge.svg)](https://github.com/alire-project/simple_logging/actions)
+
 # simple_logging
 
 Easy-to-use logging facilities for output to console in Ada programs.
