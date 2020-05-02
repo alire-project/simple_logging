@@ -1,3 +1,6 @@
+with Ada.Containers.Indefinite_Ordered_Multisets;
+with Ada.Strings.Unbounded;
+
 with GNAT.IO;
 
 with Simple_Logging.Decorators;
@@ -17,6 +20,8 @@ package body Simple_Logging is
       if Level <= Simple_Logging.Level and then
         Filtering.Accept_Message (Message, Level, Entity, Location)
       then
+         Clear_Status_Line;
+
          GNAT.IO.Put_Line
            (Decorators.Location_Decorator
               (Entity,
@@ -92,5 +97,100 @@ package body Simple_Logging is
    begin
       Log (Msg, Debug, Entity, Location);
    end Debug;
+
+   -----------------
+   -- STATUS LINE --
+   -----------------
+
+   package Status_Sets is new Ada.Containers.Indefinite_Ordered_Multisets
+     (Ongoing_Data);
+
+   Statuses  : Status_Sets.Set;
+   Indicator : constant array (Positive range <>) of String (1 .. 3) :=
+                 ("◴",
+                  "◷",
+                  "◶",
+                  "◵");
+   Ind_Pos   : Positive := 1;
+
+   --------------
+   -- Activity --
+   --------------
+
+   function Activity (Text  : String;
+                      Level : Levels := Info) return Ongoing is
+   begin
+      return This : Ongoing := (Ada.Finalization.Limited_Controlled with
+                                Len => Text'Length,
+                                Data => (Len   => Text'Length,
+                                         Level => Level,
+                                         Text  => Text))
+      do
+         Statuses.Insert (This.Data);
+         This.Step;
+      end return;
+   end Activity;
+
+   -----------------------
+   -- Build_Status_Line --
+   -----------------------
+
+   function Build_Status_Line return String is
+      use Ada.Strings.Unbounded;
+      Line : Unbounded_String;
+   begin
+      for Status of Statuses loop
+         if Status.Level <= Level then
+            Append (Line, Status.Text & "... ");
+         end if;
+      end loop;
+
+      if Length (Line) > 0 then
+         Line := Indicator (Ind_Pos) & " " & Line;
+      end if;
+
+      return To_String (Line);
+   end Build_Status_Line;
+
+   -----------------------
+   -- Clear_Status_Line --
+   -----------------------
+
+   procedure Clear_Status_Line is
+      Line : constant String := Build_Status_Line;
+   begin
+      if Line'Length > 0 then
+         GNAT.IO.Put
+           (ASCII.CR & (1 .. Line'Length => ' ') & ASCII.CR);
+      end if;
+   end Clear_Status_Line;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   overriding
+   procedure Finalize (This : in out Ongoing) is
+   begin
+      Clear_Status_Line;
+      Statuses.Difference (Status_Sets.To_Set (This.Data));
+      This.Step;
+   end Finalize;
+
+   ----------
+   -- Step --
+   ----------
+
+   procedure Step (This : in out Ongoing) is
+      pragma Unreferenced (This);
+   begin
+      Clear_Status_Line;
+      GNAT.IO.Put (ASCII.CR & Build_Status_Line);
+
+      Ind_Pos := Ind_Pos + 1;
+      if Ind_Pos > Indicator'Last then
+         Ind_Pos := Indicator'First;
+      end if;
+   end Step;
 
 end Simple_Logging;
