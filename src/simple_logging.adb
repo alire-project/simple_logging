@@ -106,12 +106,25 @@ package body Simple_Logging is
      (Ongoing_Data);
 
    Statuses  : Status_Sets.Set;
-   Indicator : constant array (Positive range <>) of String (1 .. 3) :=
-                 ("◴",
-                  "◷",
-                  "◶",
-                  "◵");
-   Ind_Pos   : Positive := 1;
+
+   subtype Indicator_Range is Positive range 1 .. 4;
+   Indicator_Nice : constant array (Indicator_Range) of String (1 .. 3) :=
+                      ("◴",
+                       "◷",
+                       "◶",
+                       "◵");
+   Indicator_Basic : constant array (Indicator_Range) of String (1 .. 1) :=
+                       (".",
+                        "o",
+                        "O",
+                        "o");
+
+   Ind_Pos         : Positive := 1;
+
+   function Indicator return String is
+     (if Is_TTY
+      then Indicator_Nice (Ind_Pos)
+      else Indicator_Basic (Ind_Pos));
 
    --------------
    -- Activity --
@@ -126,6 +139,7 @@ package body Simple_Logging is
                                          Level => Level,
                                          Text  => Text))
       do
+         Debug ("Status start: " & This.Data.Text);
          Statuses.Insert (This.Data);
          This.Step;
       end return;
@@ -140,13 +154,13 @@ package body Simple_Logging is
       Line : Unbounded_String;
    begin
       for Status of Statuses loop
-         if Status.Level <= Level then
+         if Status.Level <= Simple_Logging.Level then
             Append (Line, Status.Text & "... ");
          end if;
       end loop;
 
       if Length (Line) > 0 then
-         Line := Indicator (Ind_Pos) & " " & Line;
+         Line := Indicator & " " & Line;
       end if;
 
       return To_String (Line);
@@ -159,7 +173,7 @@ package body Simple_Logging is
    procedure Clear_Status_Line is
       Line : constant String := Build_Status_Line;
    begin
-      if Line'Length > 0 then
+      if Is_TTY and then Line'Length > 0 then
          GNAT.IO.Put
            (ASCII.CR & (1 .. Line'Length => ' ') & ASCII.CR);
       end if;
@@ -172,6 +186,7 @@ package body Simple_Logging is
    overriding
    procedure Finalize (This : in out Ongoing) is
    begin
+      Debug ("Status ended: " & This.Data.Text);
       Clear_Status_Line;
       Statuses.Difference (Status_Sets.To_Set (This.Data));
       This.Step;
@@ -185,13 +200,14 @@ package body Simple_Logging is
       pragma Unreferenced (This);
       Line : constant String := Build_Status_Line;
    begin
-      if Line'Length > 0 then
+      Debug ("Status line: " & Build_Status_Line);
+      if Is_TTY and then Line'Length > 0 then
          Clear_Status_Line;
          GNAT.IO.Put (ASCII.CR & Build_Status_Line);
 
          Ind_Pos := Ind_Pos + 1;
-         if Ind_Pos > Indicator'Last then
-            Ind_Pos := Indicator'First;
+         if Ind_Pos > Indicator_Range'Last then
+            Ind_Pos := Indicator_Range'First;
          end if;
       end if;
    end Step;
