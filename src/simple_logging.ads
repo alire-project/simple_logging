@@ -82,6 +82,7 @@ package Simple_Logging with Preelaborate is
 private
 
    type Ongoing_Data (Len : Natural) is record
+      Start : Duration;
       Level : Levels;
       Text  : String (1 .. Len);
    end record;
@@ -93,8 +94,9 @@ private
    end record;
 
    function "<" (L, R : Ongoing_Data) return Boolean is
-     (L.Level < R.Level or else
-      (L.Level = R.Level and then L.Text < R.Text));
+     (L.Start < R.Start or else
+      (L.Start = R.Start and then L.Level < R.Level) or else
+      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text));
 
    overriding
    procedure Finalize (This : in out Ongoing);
