@@ -6,6 +6,12 @@ with GNAT.IO;
 with Simple_Logging.Decorators;
 with Simple_Logging.Filtering;
 
+pragma Warnings (Off);
+--  This is compiler-internal unit. We only use the Clock, which is highly
+--  unlikely to change its specification.
+with System.OS_Primitives;
+pragma Warnings (On);
+
 package body Simple_Logging is
 
    ---------
@@ -105,6 +111,10 @@ package body Simple_Logging is
    package Status_Sets is new Ada.Containers.Indefinite_Ordered_Multisets
      (Ongoing_Data);
 
+   function Internal_Clock return Duration renames System.OS_Primitives.Clock;
+   --  We need a preelaborable source of time with sub-second granularity,
+   --  which discards GNAT.OS_Lib date functions.
+
    Statuses  : Status_Sets.Set;
 
    subtype Indicator_Range is Positive range 1 .. 4;
@@ -120,6 +130,7 @@ package body Simple_Logging is
                         "o");
 
    Ind_Pos         : Positive := 1;
+   Last_Step       : Duration := 0.0;
 
    function Indicator return String is
      (if Is_TTY
@@ -137,6 +148,7 @@ package body Simple_Logging is
                                 Len => Text'Length,
                                 Data => (Len   => Text'Length,
                                          Level => Level,
+                                         Start => Internal_Clock,
                                          Text  => Text))
       do
          Debug ("Status start: " & This.Data.Text);
@@ -202,11 +214,16 @@ package body Simple_Logging is
    begin
       if Is_TTY and then Line'Length > 0 then
          Clear_Status_Line;
-         GNAT.IO.Put (ASCII.CR & Build_Status_Line);
+         GNAT.IO.Put (ASCII.CR & Line);
 
-         Ind_Pos := Ind_Pos + 1;
-         if Ind_Pos > Indicator_Range'Last then
-            Ind_Pos := Indicator_Range'First;
+         --  Advance the spinner
+
+         if Last_Step = 0.0 or else Internal_Clock - Last_Step >= 1.0 then
+            Last_Step := Internal_Clock;
+            Ind_Pos   := Ind_Pos + 1;
+            if Ind_Pos > Indicator_Range'Last then
+               Ind_Pos := Indicator_Range'First;
+            end if;
          end if;
       end if;
    end Step;
