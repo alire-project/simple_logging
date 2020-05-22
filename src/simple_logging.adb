@@ -1,5 +1,4 @@
 with Ada.Containers.Indefinite_Ordered_Multisets;
-with Ada.Strings.Unbounded;
 
 with GNAT.IO;
 
@@ -145,13 +144,11 @@ package body Simple_Logging is
                       Level : Levels := Info) return Ongoing is
    begin
       return This : Ongoing := (Ada.Finalization.Limited_Controlled with
-                                Len => Text'Length,
-                                Data => (Len   => Text'Length,
-                                         Level => Level,
+                                Data => (Level => Level,
                                          Start => Internal_Clock,
-                                         Text  => Text))
+                                         Text  => To_Unbounded_String (Text)))
       do
-         Debug ("Status start: " & This.Data.Text);
+         Debug ("Status start: " & To_String (This.Data.Text));
          Statuses.Insert (This.Data);
          This.Step;
       end return;
@@ -162,7 +159,6 @@ package body Simple_Logging is
    -----------------------
 
    function Build_Status_Line return String is
-      use Ada.Strings.Unbounded;
       Line : Unbounded_String;
    begin
       for Status of Statuses loop
@@ -198,7 +194,7 @@ package body Simple_Logging is
    overriding
    procedure Finalize (This : in out Ongoing) is
    begin
-      Debug ("Status ended: " & This.Data.Text);
+      Debug ("Status ended: " & To_String (This.Data.Text));
       Clear_Status_Line;
       Statuses.Difference (Status_Sets.To_Set (This.Data));
       This.Step;
@@ -208,10 +204,18 @@ package body Simple_Logging is
    -- Step --
    ----------
 
-   procedure Step (This : in out Ongoing) is
-      pragma Unreferenced (This);
+   procedure Step (This     : in out Ongoing;
+                   New_Text : String := "") is
       Line : constant String := Build_Status_Line;
    begin
+
+      --  Update status if needed
+      if New_Text /= "" then
+         Statuses.Delete (This.Data);
+         This.Data.Text := To_Unbounded_String (New_Text);
+         Statuses.Insert (This.Data);
+      end if;
+
       if Is_TTY and then Line'Length > 0 then
          Clear_Status_Line;
          GNAT.IO.Put (ASCII.CR & Line);
