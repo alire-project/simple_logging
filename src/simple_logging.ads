@@ -1,6 +1,7 @@
 with GNAT.Source_Info;
 
 private with Ada.Finalization;
+private with Ada.Strings.Unbounded;
 
 package Simple_Logging with Preelaborate is
 
@@ -76,21 +77,24 @@ package Simple_Logging with Preelaborate is
    function Activity (Text : String;
                       Level : Levels := Info) return Ongoing;
 
-   procedure Step (This : in out Ongoing);
-   --  Say that progress was made, which will advance the spinner
+   procedure Step (This     : in out Ongoing;
+                   New_Text : String := "");
+   --  Say that progress was made, which will advance the spinner. Optionally,
+   --  update the text to display in this activity.
 
 private
 
-   type Ongoing_Data (Len : Natural) is record
+   use Ada.Strings.Unbounded;
+
+   type Ongoing_Data is record
       Start : Duration;
       Level : Levels;
-      Text  : String (1 .. Len);
+      Text  : Unbounded_String;
    end record;
    --  Non-limited data to be stored in collections
 
-   type Ongoing (Len : Natural)
-   is new Ada.Finalization.Limited_Controlled with record
-      Data : Ongoing_Data (Len => Len);
+   type Ongoing is new Ada.Finalization.Limited_Controlled with record
+      Data : Ongoing_Data;
    end record;
 
    function "<" (L, R : Ongoing_Data) return Boolean is
