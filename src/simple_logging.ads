@@ -31,6 +31,10 @@ package Simple_Logging with Preelaborate is
    --  suppresses the use of busy statuses (see below) which, by relying
    --  on ASCII.CR, will greatly pollute logfiles.
 
+   ASCII_Only : Boolean := True;
+   --  Restrict the deliberate use of non-ASCII chars (currently only for the
+   --  busy status spinner).
+
    procedure Log (Message  : String;
                   Level    : Levels := Info;
                   Entity   : String := Gnat.Source_Info.Enclosing_Entity;

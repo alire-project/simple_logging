@@ -132,7 +132,7 @@ package body Simple_Logging is
    Last_Step       : Duration := 0.0;
 
    function Indicator return String is
-     (if Is_TTY
+     (if Is_TTY and then not ASCII_Only
       then Indicator_Nice (Ind_Pos)
       else Indicator_Basic (Ind_Pos));
 
