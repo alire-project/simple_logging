@@ -26,8 +26,8 @@ package Simple_Logging with Preelaborate is
    Level : Levels := Info;
    --  Any message at the same level or below will be output to console
 
-   Is_TTY : Boolean := True;
-   --  Set this to false when you know log is being redirected. This flag
+   Is_TTY : Boolean := False;
+   --  Set this to True when you know log is not being redirected. This flag
    --  suppresses the use of busy statuses (see below) which, by relying
    --  on ASCII.CR, will greatly pollute logfiles.
 
