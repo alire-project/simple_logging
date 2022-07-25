@@ -160,9 +160,15 @@ package body Simple_Logging is
 
    function Build_Status_Line return String is
       Line : Unbounded_String;
+      Pred : Unbounded_String;
+      --  Status of the precedent scope, to eliminate duplicates
    begin
       for Status of Statuses loop
-         if Status.Level <= Simple_Logging.Level then
+         if Status.Level <= Simple_Logging.Level
+           and then Pred /= Status.Text
+           and then Status.Text /= ""
+         then
+            Pred := Status.Text;
             Append (Line, Status.Text & "... ");
          end if;
       end loop;
@@ -178,8 +184,11 @@ package body Simple_Logging is
    -- Clear_Status_Line --
    -----------------------
 
-   procedure Clear_Status_Line is
-      Line : constant String := Build_Status_Line;
+   procedure Clear_Status_Line (Old_Status : String := "") is
+      Line : constant String :=
+               (if Old_Status /= ""
+                then Old_Status
+                else Build_Status_Line);
    begin
       if Is_TTY and then Line'Length > 0 then
          GNAT.IO.Put
@@ -205,31 +214,36 @@ package body Simple_Logging is
    ----------
 
    procedure Step (This     : in out Ongoing;
-                   New_Text : String := "") is
-      Line : constant String := Build_Status_Line;
+                   New_Text : String := "";
+                   Clear    : Boolean := False) is
+      Old_Line : constant String := Build_Status_Line;
    begin
 
       --  Update status if needed
-      if New_Text /= "" then
+      if New_Text /= "" or else Clear then
          Statuses.Delete (This.Data);
          This.Data.Text := To_Unbounded_String (New_Text);
          Statuses.Insert (This.Data);
       end if;
 
-      if Is_TTY and then Line'Length > 0 then
-         Clear_Status_Line;
-         GNAT.IO.Put (ASCII.CR & Line);
+      declare
+         New_Line : constant String := Build_Status_Line;
+      begin
+         Clear_Status_Line (Old_Line);
+         if Is_TTY and then New_Line'Length > 0 then
+            GNAT.IO.Put (ASCII.CR & New_line);
 
-         --  Advance the spinner
+            --  Advance the spinner
 
-         if Last_Step = 0.0 or else Internal_Clock - Last_Step >= 1.0 then
-            Last_Step := Internal_Clock;
-            Ind_Pos   := Ind_Pos + 1;
-            if Ind_Pos > Indicator_Range'Last then
-               Ind_Pos := Indicator_Range'First;
+            if Last_Step = 0.0 or else Internal_Clock - Last_Step >= 1.0 then
+               Last_Step := Internal_Clock;
+               Ind_Pos   := Ind_Pos + 1;
+               if Ind_Pos > Indicator_Range'Last then
+                  Ind_Pos := Indicator_Range'First;
+               end if;
             end if;
          end if;
-      end if;
+      end;
    end Step;
 
 end Simple_Logging;

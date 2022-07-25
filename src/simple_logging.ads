@@ -82,9 +82,13 @@ package Simple_Logging with Preelaborate is
                       Level : Levels := Info) return Ongoing;
 
    procedure Step (This     : in out Ongoing;
-                   New_Text : String := "");
+                   New_Text : String := "";
+                   Clear    : Boolean := False)
+     with Pre => not (Clear and then New_Text /= "");
    --  Say that progress was made, which will advance the spinner. Optionally,
-   --  update the text to display in this activity.
+   --  update the text to display in this activity. When Clear, remove this
+   --  status contribution (e.g., because we are nesting further and this one
+   --  becomes irrelevant)
 
 private
 
@@ -111,6 +115,7 @@ private
 
    function Build_Status_Line return String;
 
-   procedure Clear_Status_Line;
+   procedure Clear_Status_Line (Old_Status : String := "");
+   --  Use the old status if provided, or the current one otherwise
 
 end Simple_Logging;
