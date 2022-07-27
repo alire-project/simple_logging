@@ -9,3 +9,5 @@ obj
 *.cgpr
 *.db
 *.xml
+
+/alire/
