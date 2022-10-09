@@ -1,4 +1,5 @@
 with Ada.Containers.Indefinite_Ordered_Multisets;
+with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 with GNAT.IO;
 
@@ -27,13 +28,22 @@ package body Simple_Logging is
       then
          Clear_Status_Line;
 
-         GNAT.IO.Put_Line
-           (Decorators.Location_Decorator
-              (Entity,
-               Location,
-               Decorators.Level_Decorator
-                 (Level,
-                  Message)));
+         declare
+            Line : constant String :=
+                     Decorators.Location_Decorator
+                       (Entity,
+                        Location,
+                        Decorators.Level_Decorator
+                          (Level,
+                           Message));
+         begin
+            if Put_Line = null then
+               GNAT.IO.Put_Line (Line);
+            else
+               Put_Line
+                 (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode (Line));
+            end if;
+         end;
       end if;
    end Log;
 
@@ -231,7 +241,12 @@ package body Simple_Logging is
       begin
          Clear_Status_Line (Old_Line);
          if Is_TTY and then New_Line'Length > 0 then
-            GNAT.IO.Put (ASCII.CR & New_line);
+            if Put = null then
+               GNAT.IO.Put (ASCII.CR & New_line);
+            else
+               Put (Ada.Strings.UTF_Encoding.Wide_Wide_Strings
+                                            .Decode (ASCII.CR & New_Line));
+            end if;
 
             --  Advance the spinner
 

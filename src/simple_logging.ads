@@ -14,6 +14,8 @@ package Simple_Logging with Preelaborate is
    --  That said, a number of customization options are available with the
    --  Decorators/Filtering child packages.
 
+   --  For UTF-8-encoded text, see the UTF_8 child package.
+
    type Levels is (Always,
                    Error,
                    Warning,
@@ -91,6 +93,9 @@ package Simple_Logging with Preelaborate is
    --  becomes irrelevant)
 
 private
+
+   Put      : access procedure (Text : Wide_Wide_String);
+   Put_Line : access procedure (Text : Wide_Wide_String);
 
    use Ada.Strings.Unbounded;
 
