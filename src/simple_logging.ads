@@ -2,6 +2,7 @@ with GNAT.Source_Info;
 
 private with Ada.Finalization;
 private with Ada.Strings.Unbounded;
+private with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 package Simple_Logging with Preelaborate is
 
@@ -13,6 +14,11 @@ package Simple_Logging with Preelaborate is
    --  to console.
    --  That said, a number of customization options are available with the
    --  Decorators/Filtering child packages.
+
+   --  Strings should be encoded in the expected terminal encoding, which in
+   --  this day and age should be UTF-8 for both Linux and Windows. This is
+   --  likely to change in the future to require Unicode encoding so text
+   --  lenghts can be computed properly.
 
    type Levels is (Always,
                    Error,
@@ -34,6 +40,9 @@ package Simple_Logging with Preelaborate is
    ASCII_Only : Boolean := True;
    --  Restrict the deliberate use of non-ASCII chars (currently only for the
    --  busy status spinner).
+
+   Stdout_Level : Levels := Always;
+   --  Any level < Stdout_Level will be output to stderr
 
    procedure Log (Message  : String;
                   Level    : Levels := Info;
@@ -91,6 +100,11 @@ package Simple_Logging with Preelaborate is
    --  becomes irrelevant)
 
 private
+
+   function U (S          : Wide_Wide_String;
+               Output_BOM : Boolean := False)
+               return Ada.Strings.UTF_Encoding.UTF_8_String
+               renames Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode;
 
    use Ada.Strings.Unbounded;
 

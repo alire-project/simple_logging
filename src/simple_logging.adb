@@ -27,13 +27,21 @@ package body Simple_Logging is
       then
          Clear_Status_Line;
 
-         GNAT.IO.Put_Line
-           (Decorators.Location_Decorator
-              (Entity,
-               Location,
-               Decorators.Level_Decorator
-                 (Level,
-                  Message)));
+         declare
+            Line : constant String :=
+                     Decorators.Location_Decorator
+                       (Entity,
+                        Location,
+                        Decorators.Level_Decorator
+                          (Level,
+                           Message));
+         begin
+            if Level < Stdout_Level then
+               GNAT.IO.Put_Line (GNAT.IO.Standard_Error, Line);
+            else
+               GNAT.IO.Put_Line (GNAT.IO.Standard_Output, Line);
+            end if;
+         end;
       end if;
    end Log;
 
@@ -117,11 +125,11 @@ package body Simple_Logging is
    Statuses  : Status_Sets.Set;
 
    subtype Indicator_Range is Positive range 1 .. 4;
-   Indicator_Nice : constant array (Indicator_Range) of String (1 .. 3) :=
-                      ("◴",
-                       "◷",
-                       "◶",
-                       "◵");
+   Indicator_Nice : constant array (Indicator_Range) of Wide_Wide_Character :=
+                      ('◴',
+                       '◷',
+                       '◶',
+                       '◵');
    Indicator_Basic : constant array (Indicator_Range) of String (1 .. 1) :=
                        (".",
                         "o",
@@ -133,7 +141,7 @@ package body Simple_Logging is
 
    function Indicator return String is
      (if Is_TTY and then not ASCII_Only
-      then Indicator_Nice (Ind_Pos)
+      then U ("" & Indicator_Nice (Ind_Pos))
       else Indicator_Basic (Ind_Pos));
 
    --------------
@@ -231,7 +239,7 @@ package body Simple_Logging is
       begin
          Clear_Status_Line (Old_Line);
          if Is_TTY and then New_Line'Length > 0 then
-            GNAT.IO.Put (ASCII.CR & New_line);
+            GNAT.IO.Put (ASCII.CR & New_Line);
 
             --  Advance the spinner
 

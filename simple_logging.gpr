@@ -12,7 +12,8 @@ project Simple_Logging is
    end Builder;
 
    package Compiler is
-      for Switches ("ada") use ("-gnatVa", "-gnatwa", "-g", "-O2", "-gnata", "-gnat12", "-gnato", "-fstack-check");
+      for Switches ("ada") use ("-gnatVa", "-gnatwa", "-g", "-O2", "-gnata", "-gnat12", "-gnato", "-fstack-check",
+                                "-gnatW8", "-s");
    end Compiler;
 
    package Binder is
