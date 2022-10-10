@@ -1,5 +1,4 @@
 with Ada.Containers.Indefinite_Ordered_Multisets;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 with GNAT.IO;
 
@@ -127,11 +126,11 @@ package body Simple_Logging is
    Statuses  : Status_Sets.Set;
 
    subtype Indicator_Range is Positive range 1 .. 4;
-   Indicator_Nice : constant array (Indicator_Range) of String (1 .. 3) :=
-                      ("◴",
-                       "◷",
-                       "◶",
-                       "◵");
+   Indicator_Nice : constant array (Indicator_Range) of Wide_Wide_Character :=
+                      ('◴',
+                       '◷',
+                       '◶',
+                       '◵');
    Indicator_Basic : constant array (Indicator_Range) of String (1 .. 1) :=
                        (".",
                         "o",
@@ -143,7 +142,7 @@ package body Simple_Logging is
 
    function Indicator return String is
      (if Is_TTY and then not ASCII_Only
-      then Indicator_Nice (Ind_Pos)
+      then U ("" & Indicator_Nice (Ind_Pos))
       else Indicator_Basic (Ind_Pos));
 
    --------------

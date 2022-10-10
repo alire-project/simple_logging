@@ -2,6 +2,7 @@ with GNAT.Source_Info;
 
 private with Ada.Finalization;
 private with Ada.Strings.Unbounded;
+private with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 package Simple_Logging with Preelaborate is
 
@@ -96,6 +97,11 @@ private
 
    Put      : access procedure (Text : Wide_Wide_String);
    Put_Line : access procedure (Text : Wide_Wide_String);
+
+   function U (S          : Wide_Wide_String;
+               Output_BOM : Boolean := False)
+               return Ada.Strings.UTF_Encoding.UTF_8_String
+               renames Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode;
 
    use Ada.Strings.Unbounded;
 
