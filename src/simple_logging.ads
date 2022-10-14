@@ -95,9 +95,6 @@ package Simple_Logging with Preelaborate is
 
 private
 
-   Put      : access procedure (Text : Wide_Wide_String);
-   Put_Line : access procedure (Text : Wide_Wide_String);
-
    function U (S          : Wide_Wide_String;
                Output_BOM : Boolean := False)
                return Ada.Strings.UTF_Encoding.UTF_8_String

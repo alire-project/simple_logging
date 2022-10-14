@@ -36,12 +36,7 @@ package body Simple_Logging is
                           (Level,
                            Message));
          begin
-            if Put_Line = null then
-               GNAT.IO.Put_Line (Line);
-            else
-               Put_Line
-                 (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode (Line));
-            end if;
+            GNAT.IO.Put_Line (Line);
          end;
       end if;
    end Log;
@@ -240,12 +235,7 @@ package body Simple_Logging is
       begin
          Clear_Status_Line (Old_Line);
          if Is_TTY and then New_Line'Length > 0 then
-            if Put = null then
-               GNAT.IO.Put (ASCII.CR & New_line);
-            else
-               Put (Ada.Strings.UTF_Encoding.Wide_Wide_Strings
-                                            .Decode (ASCII.CR & New_Line));
-            end if;
+            GNAT.IO.Put (ASCII.CR & New_Line);
 
             --  Advance the spinner
 
