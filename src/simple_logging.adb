@@ -36,7 +36,9 @@ package body Simple_Logging is
                           (Level,
                            Message));
          begin
-            if Level < Stdout_Level then
+            if Level < Stdout_Level and then
+              (Level /= Always or else Treat_Always_As_Error)
+            then
                GNAT.IO.Put_Line (GNAT.IO.Standard_Error, Line);
             else
                GNAT.IO.Put_Line (GNAT.IO.Standard_Output, Line);

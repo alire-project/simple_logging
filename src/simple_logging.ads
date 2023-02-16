@@ -42,7 +42,11 @@ package Simple_Logging with Preelaborate is
    --  busy status spinner).
 
    Stdout_Level : Levels := Always;
-   --  Any level < Stdout_Level will be output to stderr
+   --  Any level < Stdout_Level will be output to stderr, except for Always
+   --  (see below).
+
+   Treat_Always_As_Error : Boolean := False;
+   --  When True, Stdout_Level also applies to the Always level
 
    procedure Log (Message  : String;
                   Level    : Levels := Info;
