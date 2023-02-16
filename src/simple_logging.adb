@@ -36,12 +36,11 @@ package body Simple_Logging is
                           (Level,
                            Message));
          begin
-            case Level is
-               when Error | Warning =>
-                  GNAT.IO.Put_Line (GNAT.IO.Standard_Error, Line);
-               when Always | Info | Detail | Debug =>
-                  GNAT.IO.Put_Line (GNAT.IO.Standard_Output, Line);
-            end case;
+            if Level < Stdout_Level then
+               GNAT.IO.Put_Line (GNAT.IO.Standard_Error, Line);
+            else
+               GNAT.IO.Put_Line (GNAT.IO.Standard_Output, Line);
+            end if;
          end;
       end if;
    end Log;

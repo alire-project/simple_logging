@@ -1,5 +1,5 @@
 name = "simple_logging"
-version = "1.3-dev"
+version = "1.4"
 description = "Simple logging to console"
 licenses = "LGPL-3.0-only"
 
@@ -8,3 +8,6 @@ maintainers = [ "alejandro@mosteo.com", ]
 maintainers-logins = [ "mosteo", ]
 
 tags = ["logging", "utility"]
+
+[configuration]
+disabled = true

@@ -15,7 +15,10 @@ package Simple_Logging with Preelaborate is
    --  That said, a number of customization options are available with the
    --  Decorators/Filtering child packages.
 
-   --  For UTF-8-encoded text, see the UTF_8 child package.
+   --  Strings should be encoded in the expected terminal encoding, which in
+   --  this day and age should be UTF-8 for both Linux and Windows. This is
+   --  likely to change in the future to require Unicode encoding so text
+   --  lenghts can be computed properly.
 
    type Levels is (Always,
                    Error,
@@ -37,6 +40,9 @@ package Simple_Logging with Preelaborate is
    ASCII_Only : Boolean := True;
    --  Restrict the deliberate use of non-ASCII chars (currently only for the
    --  busy status spinner).
+
+   Stdout_Level : Levels := Always;
+   --  Any level < Stdout_Level will be output to stderr
 
    procedure Log (Message  : String;
                   Level    : Levels := Info;
