@@ -18,7 +18,7 @@ package Simple_Logging with Preelaborate is
    --  Strings should be encoded in the expected terminal encoding, which in
    --  this day and age should be UTF-8 for both Linux and Windows. This is
    --  likely to change in the future to require Unicode encoding so text
-   --  lenghts can be computed properly.
+   --  lengths can be computed properly.
 
    type Levels is (Always,
                    Error,
