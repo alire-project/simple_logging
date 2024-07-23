@@ -1,3 +1,5 @@
+#ifdef __linux__
+
 #include <stdbool.h>
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -19,3 +21,12 @@ int simple_logging_term_width(void)
 		return x.ws_col;
 	}
 }
+
+#else // #ifdef __linux__
+
+int simple_logging_term_width(void)
+{
+  return -1;
+}
+
+#endif // #ifdef __linux__
