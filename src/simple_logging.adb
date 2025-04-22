@@ -2,6 +2,7 @@ with Ada.Containers.Indefinite_Ordered_Multisets;
 
 with GNAT.IO;
 
+with Simple_Logging.C;
 with Simple_Logging.Decorators;
 with Simple_Logging.Filtering;
 
@@ -133,10 +134,10 @@ package body Simple_Logging is
                        '◶',
                        '◵');
    Indicator_Basic : constant array (Indicator_Range) of String (1 .. 1) :=
-                       (".",
-                        "o",
-                        "O",
-                        "o");
+                       ("/",
+                        "-",
+                        "\",
+                        "|");
 
    Ind_Pos         : Positive := 1;
    Last_Step       : Duration := 0.0;
@@ -228,7 +229,6 @@ package body Simple_Logging is
                    Clear    : Boolean := False) is
       Old_Line : constant String := Build_Status_Line;
    begin
-
       --  Update status if needed
       if New_Text /= "" or else Clear then
          Statuses.Delete (This.Data);
@@ -242,10 +242,13 @@ package body Simple_Logging is
          Clear_Status_Line (Old_Line);
          if Is_TTY and then New_Line'Length > 0 then
             GNAT.IO.Put (ASCII.CR & New_Line);
+            C.Flush_Stdout;
 
             --  Advance the spinner
 
-            if Last_Step = 0.0 or else Internal_Clock - Last_Step >= 1.0 then
+            if Last_Step = 0.0 or else
+               Internal_Clock - Last_Step >= Spinner_Period
+            then
                Last_Step := Internal_Clock;
                Ind_Pos   := Ind_Pos + 1;
                if Ind_Pos > Indicator_Range'Last then

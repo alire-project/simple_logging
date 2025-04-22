@@ -2,6 +2,8 @@
 lib
 obj
 
+.clang-format
+
 # Ada Library Information
 *.ali
 

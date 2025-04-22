@@ -48,6 +48,9 @@ package Simple_Logging with Preelaborate is
    Treat_Always_As_Error : Boolean := False;
    --  When True, Stdout_Level also applies to the Always level
 
+   Spinner_Period : Duration := 0.1;
+   --  Time between spinner frame changes
+
    procedure Log (Message  : String;
                   Level    : Levels := Info;
                   Entity   : String := Gnat.Source_Info.Enclosing_Entity;
