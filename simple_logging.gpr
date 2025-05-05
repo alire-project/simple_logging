@@ -8,6 +8,8 @@ project Simple_Logging is
    for Object_Dir use "obj";
    for Library_Dir use "lib";
 
+   for Languages use ("C", "Ada");
+
    package Builder is
       for Switches ("ada") use ("-j0", "-g");
    end Builder;

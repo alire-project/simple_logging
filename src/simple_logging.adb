@@ -6,6 +6,8 @@ with Simple_Logging.C;
 with Simple_Logging.Decorators;
 with Simple_Logging.Filtering;
 
+with Interfaces.C;
+
 pragma Warnings (Off);
 --  This is compiler-internal unit. We only use the Clock, which is highly
 --  unlikely to change its specification.
@@ -13,6 +15,9 @@ with System.OS_Primitives;
 pragma Warnings (On);
 
 package body Simple_Logging is
+   function Get_Term_Width return Interfaces.C.Int;
+   pragma Import
+      (Convention => C, Entity => Get_Term_Width, External_Name => "simple_logging_term_width");
 
    ---------
    -- Log --
@@ -173,6 +178,8 @@ package body Simple_Logging is
       Line : Unbounded_String;
       Pred : Unbounded_String;
       --  Status of the precedent scope, to eliminate duplicates
+
+      Effective_Length : Integer;
    begin
       for Status of Statuses loop
          if Status.Level <= Simple_Logging.Level
@@ -188,7 +195,12 @@ package body Simple_Logging is
          Line := Indicator & " " & Line;
       end if;
 
-      return To_String (Line);
+      Effective_Length := Integer (Get_Term_Width);
+      if Effective_Length = -1 or else Effective_Length > Length (Line) then
+         Effective_Length := Length (Line);
+      end if;
+
+      return To_String (Head (Line, Effective_Length));
    end Build_Status_Line;
 
    -----------------------
@@ -258,5 +270,4 @@ package body Simple_Logging is
          end if;
       end;
    end Step;
-
 end Simple_Logging;
