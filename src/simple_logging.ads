@@ -2,7 +2,7 @@ with GNAT.Source_Info;
 
 private with Ada.Finalization;
 private with Ada.Strings.Unbounded;
-private with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 package Simple_Logging with Preelaborate is
 
@@ -106,12 +106,16 @@ package Simple_Logging with Preelaborate is
    --  status contribution (e.g., because we are nesting further and this one
    --  becomes irrelevant)
 
-private
+   -------------
+   -- Unicode --
+   -------------
 
    function U (S          : Wide_Wide_String;
                Output_BOM : Boolean := False)
                return Ada.Strings.UTF_Encoding.UTF_8_String
                renames Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode;
+
+private
 
    use Ada.Strings.Unbounded;
 
