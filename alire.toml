@@ -2,6 +2,7 @@ name = "simple_logging"
 version = "2.0.0"
 description = "Simple logging to console"
 licenses = "LGPL-3.0-only"
+website = "https://github.com/alire-project/simple_logging"
 
 authors = [ "Alejandro R. Mosteo", ]
 maintainers = [ "alejandro@mosteo.com", ]
