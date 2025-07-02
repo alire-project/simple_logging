@@ -1,0 +1,17 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Publish
+        uses: alire-project/alr-publish@v1
+        with:
+          github_token: ${{ secrets.ALR_PUBLISH_PAT }}
