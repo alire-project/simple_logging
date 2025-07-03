@@ -239,9 +239,10 @@ package body Simple_Logging is
       declare
          New_Line : constant String := Build_Status_Line;
       begin
-         Clear_Status_Line (Old_Line);
          if Is_TTY and then New_Line'Length > 0 then
-            GNAT.IO.Put (ASCII.CR & New_Line);
+            GNAT.IO.Put (ASCII.CR
+                         & New_Line
+                         & (1 .. Old_Line'Length - New_Line'Length => ' '));
             C.Flush_Stdout;
 
             --  Advance the spinner
@@ -255,6 +256,8 @@ package body Simple_Logging is
                   Ind_Pos := Indicator_Range'First;
                end if;
             end if;
+         else
+            Clear_Status_Line (Old_Line);
          end if;
       end;
    end Step;
