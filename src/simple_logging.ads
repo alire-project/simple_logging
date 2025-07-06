@@ -20,6 +20,9 @@ package Simple_Logging with Preelaborate is
    --  likely to change in the future to require Unicode encoding so text
    --  lenghts can be computed properly.
 
+   --  NOTE: by default, strings are considered UTF-8 and ANSI-aware. If you're
+   --  using any other encoding but UTF-8, you must set Visible_Length below.
+
    type Levels is (Always,
                    Error,
                    Warning,
@@ -31,6 +34,18 @@ package Simple_Logging with Preelaborate is
 
    Level : Levels := Info;
    --  Any message at the same level or below will be output to console
+
+   ANSI_Aware : Boolean := True;
+   --  Set to False if not using ANSI to omit some ANSI calls (untested impact
+   --  on speed, probably negligible).
+
+   function UTF_8_Length (S : String) return Natural;
+   --  Actual length in visible cells of a string encoded with UTF-8
+
+   Visible_Length : access function (S : String) return Natural
+     := UTF_8_Length'Access;
+   --  Set to a function that says how many terminal cells a string will really
+   --  use. Must be set if using ANSI or non-UTF-8 encoding.
 
    Is_TTY : Boolean := False;
    --  Set this to True when you know log is not being redirected. This flag
@@ -114,6 +129,10 @@ package Simple_Logging with Preelaborate is
                Output_BOM : Boolean := False)
                return Ada.Strings.UTF_Encoding.UTF_8_String
                renames Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode;
+
+   function D (S : String)
+               return Wide_Wide_String
+               renames Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode;
 
 private
 

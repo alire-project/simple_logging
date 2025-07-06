@@ -5,6 +5,7 @@ with GNAT.IO;
 with Simple_Logging.C;
 with Simple_Logging.Decorators;
 with Simple_Logging.Filtering;
+with Simple_Logging.Support;
 
 pragma Warnings (Off);
 --  This is compiler-internal unit. We only use the Clock, which is highly
@@ -201,9 +202,9 @@ package body Simple_Logging is
                 then Old_Status
                 else Build_Status_Line);
    begin
-      if Is_TTY and then Line'Length > 0 then
+      if Is_TTY and then Visible_Length (Line) > 0 then
          GNAT.IO.Put
-           (ASCII.CR & (1 .. Line'Length => ' ') & ASCII.CR);
+           (ASCII.CR & (1 .. Visible_Length (Line) => ' ') & ASCII.CR);
       end if;
    end Clear_Status_Line;
 
@@ -237,12 +238,14 @@ package body Simple_Logging is
       end if;
 
       declare
-         New_Line : constant String := Build_Status_Line;
+         New_Line : constant String  := Build_Status_Line;
+         New_Len  : constant Natural := Visible_Length (New_Line);
+         Old_Len  : constant Natural := Visible_Length (Old_Line);
       begin
-         if Is_TTY and then New_Line'Length > 0 then
+         if Is_TTY and then New_Len > 0 then
             GNAT.IO.Put (ASCII.CR
                          & New_Line
-                         & (1 .. Old_Line'Length - New_Line'Length => ' '));
+                         & (1 .. Old_Len - New_Len => ' '));
             C.Flush_Stdout;
 
             --  Advance the spinner
@@ -261,5 +264,14 @@ package body Simple_Logging is
          end if;
       end;
    end Step;
+
+   ------------------
+   -- UTF_8_Length --
+   ------------------
+
+   function UTF_8_Length (S : String) return Natural
+   is (if ANSI_Aware
+       then D (Support.ANSI_Scrub (S))'Length
+       else D (S)'Length);
 
 end Simple_Logging;
