@@ -1,5 +1,5 @@
 name = "simple_logging"
-version = "2.0.0"
+version = "2.0.1-dev"
 description = "Simple logging to console"
 licenses = "LGPL-3.0-only"
 website = "https://github.com/alire-project/simple_logging"
