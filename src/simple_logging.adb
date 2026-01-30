@@ -251,14 +251,15 @@ package body Simple_Logging is
          Old_Len  : constant Natural := Visible_Length (Old_Line);
       begin
          if Is_TTY and then New_Len > 0 then
-            GNAT.IO.Put (ASCII.CR
-                         & Done_Line
-                         & (1 .. Old_Len - New_Len => ' ')
-                         & ASCII.LF);
-            C.Flush_Stdout;
+            GNAT.IO.Put_Line
+              (ASCII.CR
+               & Done_Line
+               & (1 .. Old_Len - Natural'Min (New_Len, Old_Len) => ' '));
          else
             Clear_Status_Line (Old_Line);
+            GNAT.IO.Put_Line ("");
          end if;
+         C.Flush_Stdout;
       end;
    end New_Line;
 
@@ -286,7 +287,7 @@ package body Simple_Logging is
          if Is_TTY and then New_Len > 0 then
             GNAT.IO.Put (ASCII.CR
                          & New_Line
-                         & (1 .. Old_Len - New_Len => ' '));
+                         & (1 .. Old_Len - Natural'Min (New_Len, Old_Len) => ' '));
             C.Flush_Stdout;
 
             --  Advance the spinner

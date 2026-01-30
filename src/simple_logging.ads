@@ -165,7 +165,9 @@ private
    function "<" (L, R : Ongoing_Data) return Boolean is
      (L.Start < R.Start or else
       (L.Start = R.Start and then L.Level < R.Level) or else
-      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text));
+      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text) or else
+      (L.Start = R.Start and then L.Level = R.Level and then L.Text = R.Text
+       and then L.Text_Autocomplete < R.Text_Autocomplete));
 
    overriding
    procedure Finalize (This : in out Ongoing);
