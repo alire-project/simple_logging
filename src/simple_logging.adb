@@ -243,16 +243,16 @@ package body Simple_Logging is
 
       --  Print checkmark + Text and clear remainder of line
       declare
-         New_Line : constant String  :=
+         Done_Line : constant String  :=
             (if ASCII_Only
              then "Done: " & Text
              else U ("✔ ") & Text);
-         New_Len  : constant Natural := Visible_Length (New_Line);
+         New_Len  : constant Natural := Visible_Length (Done_Line);
          Old_Len  : constant Natural := Visible_Length (Old_Line);
       begin
          if Is_TTY and then New_Len > 0 then
             GNAT.IO.Put (ASCII.CR
-                         & New_Line
+                         & Done_Line
                          & (1 .. Old_Len - New_Len => ' ')
                          & ASCII.LF);
             C.Flush_Stdout;
