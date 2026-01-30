@@ -114,10 +114,11 @@ package Simple_Logging with Preelaborate is
                       Level             : Levels := Info) return Ongoing;
    --  Start an ongoing activity with given Text. If Autocomplete_Text is
    --  provided, it will be used to complete the text when the activity ends.
-   --  This results in "Done: <Autocomplete_Text>" being printed when the
-   --  activity ends, instead of just clearing the status line. You can also
-   --  use New_Line to print a custom message and jumping to next line, at end
-   --  or mid-progress.
+   --  When ASCII_Only is True, this results in "Done: <Autocomplete_Text>"
+   --  being printed; otherwise, a checkmark-prefixed message is printed.
+   --  In both cases the status line is cleared. You can also use New_Line to
+   --  print a custom message and to jump to the next line, at end or
+   --  mid-progress.
 
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
