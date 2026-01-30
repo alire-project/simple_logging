@@ -109,8 +109,15 @@ package Simple_Logging with Preelaborate is
    --  trailing '...' is added by this prompt. The rest of logging subprograms
    --  will emit normally over the status line.
 
-   function Activity (Text : String;
-                      Level : Levels := Info) return Ongoing;
+   function Activity (Text              : String;
+                      Autocomplete_Text : String := "";
+                      Level             : Levels := Info) return Ongoing;
+   --  Start an ongoing activity with given Text. If Autocomplete_Text is
+   --  provided, it will be used to complete the text when the activity ends.
+   --  This results in "Done: <Autocomplete_Text>" being printed when the
+   --  activity ends, instead of just clearing the status line. You can also
+   --  use New_Line to print a custom message and jumping to next line, at end
+   --  or mid-progress.
 
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
@@ -120,6 +127,10 @@ package Simple_Logging with Preelaborate is
    --  update the text to display in this activity. When Clear, remove this
    --  status contribution (e.g., because we are nesting further and this one
    --  becomes irrelevant)
+
+   procedure New_Line (This : in out Ongoing;
+                       Text : String);
+   --  Remove the step text and print checkmark + Text and jump to next line.
 
    -------------
    -- Unicode --
@@ -139,9 +150,10 @@ private
    use Ada.Strings.Unbounded;
 
    type Ongoing_Data is record
-      Start : Duration;
-      Level : Levels;
-      Text  : Unbounded_String;
+      Start             : Duration;
+      Level             : Levels;
+      Text              : Unbounded_String;
+      Text_Autocomplete : Unbounded_String;
    end record;
    --  Non-limited data to be stored in collections
 
