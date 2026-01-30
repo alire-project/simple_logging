@@ -152,13 +152,17 @@ package body Simple_Logging is
    -- Activity --
    --------------
 
-   function Activity (Text  : String;
-                      Level : Levels := Info) return Ongoing is
+   function Activity (Text              : String;
+                      Autocomplete_Text : String := "";
+                      Level             : Levels := Info) return Ongoing is
    begin
-      return This : Ongoing := (Ada.Finalization.Limited_Controlled with
-                                Data => (Level => Level,
-                                         Start => Internal_Clock,
-                                         Text  => To_Unbounded_String (Text)))
+      return This : Ongoing :=
+        (Ada.Finalization.Limited_Controlled with
+            Data => (Level => Level,
+                     Start => Internal_Clock,
+                     Text  => To_Unbounded_String (Text),
+                     Text_Autocomplete =>
+                              To_Unbounded_String (Autocomplete_Text)))
       do
          Debug ("Status start: " & To_String (This.Data.Text));
          Statuses.Insert (This.Data);
@@ -216,10 +220,48 @@ package body Simple_Logging is
    procedure Finalize (This : in out Ongoing) is
    begin
       Debug ("Status ended: " & To_String (This.Data.Text));
-      Clear_Status_Line;
-      Statuses.Difference (Status_Sets.To_Set (This.Data));
-      This.Step;
+      if this.Data.Text_Autocomplete /= "" then
+         this.New_Line (To_String (This.Data.Text_Autocomplete));
+      else
+         Clear_Status_Line;
+         Statuses.Difference (Status_Sets.To_Set (This.Data));
+         This.Step;
+      end if;
    end Finalize;
+
+   --------------
+   -- New_Line --
+   --------------
+
+   procedure New_Line (This : in out Ongoing;
+                       Text : String)
+   is
+      Old_Line : constant String := Build_Status_Line;
+   begin
+      --  Remove current status (unsure if this is needed)
+      Statuses.Exclude (This.Data);
+
+      --  Print checkmark + Text and clear remainder of line
+      declare
+         Done_Line : constant String  :=
+            (if ASCII_Only
+             then "Done: " & Text
+             else U ("✔ ") & Text);
+         New_Len  : constant Natural := Visible_Length (Done_Line);
+         Old_Len  : constant Natural := Visible_Length (Old_Line);
+      begin
+         if Is_TTY and then New_Len > 0 then
+            GNAT.IO.Put_Line
+              (ASCII.CR
+               & Done_Line
+               & (1 .. Old_Len - Natural'Min (New_Len, Old_Len) => ' '));
+         else
+            Clear_Status_Line (Old_Line);
+            GNAT.IO.Put_Line ("");
+         end if;
+         C.Flush_Stdout;
+      end;
+   end New_Line;
 
    ----------
    -- Step --
@@ -232,7 +274,7 @@ package body Simple_Logging is
    begin
       --  Update status if needed
       if New_Text /= "" or else Clear then
-         Statuses.Delete (This.Data);
+         Statuses.Exclude (This.Data);
          This.Data.Text := To_Unbounded_String (New_Text);
          Statuses.Insert (This.Data);
       end if;
@@ -245,7 +287,7 @@ package body Simple_Logging is
          if Is_TTY and then New_Len > 0 then
             GNAT.IO.Put (ASCII.CR
                          & New_Line
-                         & (1 .. Old_Len - New_Len => ' '));
+                         & (1 .. Old_Len - Natural'Min (New_Len, Old_Len) => ' '));
             C.Flush_Stdout;
 
             --  Advance the spinner

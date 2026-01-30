@@ -109,8 +109,16 @@ package Simple_Logging with Preelaborate is
    --  trailing '...' is added by this prompt. The rest of logging subprograms
    --  will emit normally over the status line.
 
-   function Activity (Text : String;
-                      Level : Levels := Info) return Ongoing;
+   function Activity (Text              : String;
+                      Autocomplete_Text : String := "";
+                      Level             : Levels := Info) return Ongoing;
+   --  Start an ongoing activity with given Text. If Autocomplete_Text is
+   --  provided, it will be used to complete the text when the activity ends.
+   --  When ASCII_Only is True, this results in "Done: <Autocomplete_Text>"
+   --  being printed; otherwise, a checkmark-prefixed message is printed.
+   --  In both cases the status line is cleared. You can also use New_Line to
+   --  print a custom message and to jump to the next line, at end or
+   --  mid-progress.
 
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
@@ -120,6 +128,10 @@ package Simple_Logging with Preelaborate is
    --  update the text to display in this activity. When Clear, remove this
    --  status contribution (e.g., because we are nesting further and this one
    --  becomes irrelevant)
+
+   procedure New_Line (This : in out Ongoing;
+                       Text : String);
+   --  Remove the step text and print checkmark + Text and jump to next line.
 
    -------------
    -- Unicode --
@@ -139,9 +151,10 @@ private
    use Ada.Strings.Unbounded;
 
    type Ongoing_Data is record
-      Start : Duration;
-      Level : Levels;
-      Text  : Unbounded_String;
+      Start             : Duration;
+      Level             : Levels;
+      Text              : Unbounded_String;
+      Text_Autocomplete : Unbounded_String;
    end record;
    --  Non-limited data to be stored in collections
 
@@ -152,7 +165,9 @@ private
    function "<" (L, R : Ongoing_Data) return Boolean is
      (L.Start < R.Start or else
       (L.Start = R.Start and then L.Level < R.Level) or else
-      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text));
+      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text) or else
+      (L.Start = R.Start and then L.Level = R.Level and then L.Text = R.Text
+       and then L.Text_Autocomplete < R.Text_Autocomplete));
 
    overriding
    procedure Finalize (This : in out Ongoing);
