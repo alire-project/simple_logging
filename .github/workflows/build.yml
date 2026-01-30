@@ -9,16 +9,26 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest     # x86_64 Linux
+          - ubuntu-24.04-arm  # ARM64 Linux
+          - macos-15-intel    # Intel macOS
+          - macos-latest      # ARM64 macOS
+          - windows-latest    # x86_64 Windows
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
 
-    - name: Set up GNAT toolchain
-      run: >
-        sudo apt-get update && 
-        sudo apt-get install gnat gprbuild
+    - name: Set up Alire
+      uses: alire-project/setup-alire@v5
 
-    - name: Build
-      run: gprbuild -j0 -p
+    - name: Build project
+      run: alr build
+
+    - name: Run tests
+      run: alr test
