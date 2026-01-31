@@ -99,6 +99,11 @@ package Simple_Logging with Preelaborate is
                       Location : String := Gnat.Source_Info.Source_Location)
    is null; -- Quietly drop
 
+   type Any_Spinner is new Wide_Wide_String;
+   --  Sequence of chars to loop through for spinner animation
+
+   function Default_Spinner return Any_Spinner;
+
    -----------------
    -- Status line --
    -----------------
@@ -111,14 +116,16 @@ package Simple_Logging with Preelaborate is
 
    function Activity (Text              : String;
                       Autocomplete_Text : String := "";
-                      Level             : Levels := Info) return Ongoing;
+                      Spinner           : Any_Spinner := Default_Spinner;
+                      Level             : Levels := Info)
+                      return Ongoing;
    --  Start an ongoing activity with given Text. If Autocomplete_Text is
    --  provided, it will be used to complete the text when the activity ends.
    --  When ASCII_Only is True, this results in "Done: <Autocomplete_Text>"
    --  being printed; otherwise, a checkmark-prefixed message is printed.
    --  In both cases the status line is cleared. You can also use New_Line to
    --  print a custom message and to jump to the next line, at end or
-   --  mid-progress.
+   --  mid-progress. See the Spinners child package for predefined spinners.
 
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
