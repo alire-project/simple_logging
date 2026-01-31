@@ -104,11 +104,14 @@ package Simple_Logging with Preelaborate is
    type Any_Spinner is new Wide_Wide_String;
    --  Sequence of chars to loop through for spinner animation
 
-   function Default_Spinner return Any_Spinner;
-
    -----------------
    -- Status line --
    -----------------
+
+   procedure Set_Spinner (Spinner : Any_Spinner);
+   --  Set the global spinner model to use. The default spinner will be forced
+   --  if ASCII_Only is True. See the Spinners child package for predefined
+   --  spinners.
 
    type Ongoing (<>) is tagged limited private;
    --  The status line is used to present an ongoing activity. This is done
@@ -118,7 +121,6 @@ package Simple_Logging with Preelaborate is
 
    function Activity (Text              : String;
                       Autocomplete_Text : String := "";
-                      Spinner           : Any_Spinner := Default_Spinner;
                       Level             : Levels := Info)
                       return Ongoing;
    --  Start an ongoing activity with given Text. If Autocomplete_Text is
@@ -127,7 +129,7 @@ package Simple_Logging with Preelaborate is
    --  being printed; otherwise, a checkmark-prefixed message is printed.
    --  In both cases the status line is cleared. You can also use New_Line to
    --  print a custom message and to jump to the next line, at end or
-   --  mid-progress. See the Spinners child package for predefined spinners.
+   --  mid-progress.
 
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
@@ -174,11 +176,9 @@ private
 
       --  Rest of state not needed to rebuild the status line
       Text_Autocomplete : Unbounded_String;
-      Spinner           : Spinner_Holders.Holder;
-      Spinner_Pos       : Integer := Integer'First;
    end record;
-   --  Note: we consider only a single spinner active so their status is shared
-   --  by means of global variables in the body.
+   --  Note: Although activities can be nested, there is only a global spinner
+   --  so all that state is in the body.
 
    function "<" (L, R : Ongoing_Data) return Boolean is
      (L.Start < R.Start or else
@@ -192,7 +192,5 @@ private
 
    procedure Clear_Status_Line (Old_Status : String := "");
    --  Use the old status if provided, or the current one otherwise
-
-   function Default_Spinner return Any_Spinner is ("");
 
 end Simple_Logging;

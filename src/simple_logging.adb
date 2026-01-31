@@ -131,6 +131,27 @@ package body Simple_Logging is
 
    Last_Status_Line : Unbounded_String; -- Used for cleanup
    Last_Spin        : Duration := 0.0;
+   Spinner          : Spinner_Holders.Holder;
+   Spinner_Pos      : Integer := 0;
+
+   -----------------
+   -- Set_Spinner --
+   -----------------
+
+   procedure Set_Spinner (Spinner : Any_Spinner) is
+   begin
+      if ASCII_Only and then (for some Char of Spinner =>
+                                Wide_Wide_Character'Pos (Char) > 127)
+      then
+         Simple_Logging.Spinner.Replace_Element (Spinners.Classic);
+         Warning ("Using default spinner as requested one is not ASCII-only");
+      elsif Spinner'Length = 0 then
+         Simple_Logging.Spinner.Replace_Element (Spinners.Classic);
+         Warning ("Using default spinner as requested one is empty");
+      else
+         Simple_Logging.Spinner.Replace_Element (Spinner);
+      end if;
+   end Set_Spinner;
 
    --------------
    -- Activity --
@@ -138,7 +159,6 @@ package body Simple_Logging is
 
    function Activity (Text              : String;
                       Autocomplete_Text : String := "";
-                      Spinner           : Any_Spinner := Default_Spinner;
                       Level             : Levels := Info)
                       return Ongoing
    is
@@ -149,12 +169,7 @@ package body Simple_Logging is
                      Start => Internal_Clock,
                      Text  => To_Unbounded_String (Text)),
             Text_Autocomplete =>
-                     To_Unbounded_String (Autocomplete_Text),
-            Spinner => Spinner_Holders.To_Holder
-              (if Spinner = Default_Spinner
-               then (if ASCII_Only then Spinners.Classic else Spinners.Braille_8)
-               else Spinner),
-            Spinner_Pos => <>)
+                     To_Unbounded_String (Autocomplete_Text))
       do
          Debug ("Status start: " & To_String (This.Data.Text));
          Statuses.Insert (This.Data);
@@ -167,17 +182,26 @@ package body Simple_Logging is
    -----------------------
 
    function Build_Status_Line (This : in out Ongoing) return String is
+      pragma Unreferenced (This);
+      --  Not used right now but likely to be necessary in the future
+
       Line : Unbounded_String;
       Pred : Unbounded_String;
       --  Status of the precedent scope, to eliminate duplicates
    begin
       if Internal_Clock - Last_Spin > Spinner_Period then
-         This.Spinner_Pos := This.Spinner_Pos + 1;
+         Spinner_Pos := Spinner_Pos + 1;
          Last_Spin := Internal_Clock;
+      end if;
 
-         if This.Spinner_Pos not in This.Spinner.Reference.Element'Range then
-            This.Spinner_Pos := This.Spinner.Reference.Element'First;
-         end if;
+      --  Ensure there is a spinner configured (cannot be done before due to
+      --  pre-elaboration).
+      if Spinner.Is_Empty then
+         Spinner.Replace_Element (Spinners.Classic);
+      end if;
+
+      if Spinner_Pos not in Spinner.Reference.Element'Range then
+         Spinner_Pos := Spinner.Reference.Element'First;
       end if;
 
       for Status of Statuses loop
@@ -192,7 +216,7 @@ package body Simple_Logging is
 
       if Length (Line) > 0 then
          Line :=
-           U ("" & This.Spinner.Reference.Element (This.Spinner_Pos))
+           U ("" & Spinner.Reference.Element (Spinner_Pos))
            & " " & Line;
       end if;
 
