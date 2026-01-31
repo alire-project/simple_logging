@@ -1,5 +1,6 @@
 with GNAT.Source_Info;
 
+private with Ada.Containers.Indefinite_Holders;
 private with Ada.Finalization;
 private with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
@@ -64,7 +65,8 @@ package Simple_Logging with Preelaborate is
    --  When True, Stdout_Level also applies to the Always level
 
    Spinner_Period : Duration := 0.1;
-   --  Time between spinner frame changes
+   --  Time between spinner frame changes. TODO: make this a property of the
+   --  spinner itself.
 
    procedure Log (Message  : String;
                   Level    : Levels := Info;
@@ -99,9 +101,17 @@ package Simple_Logging with Preelaborate is
                       Location : String := Gnat.Source_Info.Source_Location)
    is null; -- Quietly drop
 
+   type Any_Spinner is new Wide_Wide_String;
+   --  Sequence of chars to loop through for spinner animation
+
    -----------------
    -- Status line --
    -----------------
+
+   procedure Set_Spinner (Spinner : Any_Spinner);
+   --  Set the global spinner model to use. The default spinner will be forced
+   --  if ASCII_Only is True. See the Spinners child package for predefined
+   --  spinners.
 
    type Ongoing (<>) is tagged limited private;
    --  The status line is used to present an ongoing activity. This is done
@@ -111,7 +121,8 @@ package Simple_Logging with Preelaborate is
 
    function Activity (Text              : String;
                       Autocomplete_Text : String := "";
-                      Level             : Levels := Info) return Ongoing;
+                      Level             : Levels := Info)
+                      return Ongoing;
    --  Start an ongoing activity with given Text. If Autocomplete_Text is
    --  provided, it will be used to complete the text when the activity ends.
    --  When ASCII_Only is True, this results in "Done: <Autocomplete_Text>"
@@ -150,29 +161,34 @@ private
 
    use Ada.Strings.Unbounded;
 
+   package Spinner_Holders is new
+     Ada.Containers.Indefinite_Holders (Any_Spinner);
+
    type Ongoing_Data is record
       Start             : Duration;
       Level             : Levels;
       Text              : Unbounded_String;
-      Text_Autocomplete : Unbounded_String;
    end record;
    --  Non-limited data to be stored in collections
 
    type Ongoing is new Ada.Finalization.Limited_Controlled with record
       Data : Ongoing_Data;
+
+      --  Rest of state not needed to rebuild the status line
+      Text_Autocomplete : Unbounded_String;
    end record;
+   --  Note: Although activities can be nested, there is only a global spinner
+   --  so all that state is in the body.
 
    function "<" (L, R : Ongoing_Data) return Boolean is
      (L.Start < R.Start or else
       (L.Start = R.Start and then L.Level < R.Level) or else
-      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text) or else
-      (L.Start = R.Start and then L.Level = R.Level and then L.Text = R.Text
-       and then L.Text_Autocomplete < R.Text_Autocomplete));
+      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text));
 
    overriding
    procedure Finalize (This : in out Ongoing);
 
-   function Build_Status_Line return String;
+   function Build_Status_Line (This : in out Ongoing) return String;
 
    procedure Clear_Status_Line (Old_Status : String := "");
    --  Use the old status if provided, or the current one otherwise

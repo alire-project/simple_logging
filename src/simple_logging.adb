@@ -5,6 +5,7 @@ with GNAT.IO;
 with Simple_Logging.C;
 with Simple_Logging.Decorators;
 with Simple_Logging.Filtering;
+with Simple_Logging.Spinners;
 with Simple_Logging.Support;
 
 pragma Warnings (Off);
@@ -128,25 +129,29 @@ package body Simple_Logging is
 
    Statuses  : Status_Sets.Set;
 
-   subtype Indicator_Range is Positive range 1 .. 4;
-   Indicator_Nice : constant array (Indicator_Range) of Wide_Wide_Character :=
-                      ('◴',
-                       '◷',
-                       '◶',
-                       '◵');
-   Indicator_Basic : constant array (Indicator_Range) of String (1 .. 1) :=
-                       ("/",
-                        "-",
-                        "\",
-                        "|");
+   Last_Status_Line : Unbounded_String; -- Used for cleanup
+   Last_Spin        : Duration := 0.0;
+   Spinner          : Spinner_Holders.Holder;
+   Spinner_Pos      : Integer := 0;
 
-   Ind_Pos         : Positive := 1;
-   Last_Step       : Duration := 0.0;
+   -----------------
+   -- Set_Spinner --
+   -----------------
 
-   function Indicator return String is
-     (if Is_TTY and then not ASCII_Only
-      then U ("" & Indicator_Nice (Ind_Pos))
-      else Indicator_Basic (Ind_Pos));
+   procedure Set_Spinner (Spinner : Any_Spinner) is
+   begin
+      if ASCII_Only and then (for some Char of Spinner =>
+                                Wide_Wide_Character'Pos (Char) > 127)
+      then
+         Simple_Logging.Spinner.Replace_Element (Spinners.Classic);
+         Warning ("Using default spinner as requested one is not ASCII-only");
+      elsif Spinner'Length = 0 then
+         Simple_Logging.Spinner.Replace_Element (Spinners.Classic);
+         Warning ("Using default spinner as requested one is empty");
+      else
+         Simple_Logging.Spinner.Replace_Element (Spinner);
+      end if;
+   end Set_Spinner;
 
    --------------
    -- Activity --
@@ -154,15 +159,17 @@ package body Simple_Logging is
 
    function Activity (Text              : String;
                       Autocomplete_Text : String := "";
-                      Level             : Levels := Info) return Ongoing is
+                      Level             : Levels := Info)
+                      return Ongoing
+   is
    begin
       return This : Ongoing :=
         (Ada.Finalization.Limited_Controlled with
             Data => (Level => Level,
                      Start => Internal_Clock,
-                     Text  => To_Unbounded_String (Text),
-                     Text_Autocomplete =>
-                              To_Unbounded_String (Autocomplete_Text)))
+                     Text  => To_Unbounded_String (Text)),
+            Text_Autocomplete =>
+                     To_Unbounded_String (Autocomplete_Text))
       do
          Debug ("Status start: " & To_String (This.Data.Text));
          Statuses.Insert (This.Data);
@@ -174,11 +181,29 @@ package body Simple_Logging is
    -- Build_Status_Line --
    -----------------------
 
-   function Build_Status_Line return String is
+   function Build_Status_Line (This : in out Ongoing) return String is
+      pragma Unreferenced (This);
+      --  Not used right now but likely to be necessary in the future
+
       Line : Unbounded_String;
       Pred : Unbounded_String;
       --  Status of the precedent scope, to eliminate duplicates
    begin
+      if Internal_Clock - Last_Spin > Spinner_Period then
+         Spinner_Pos := Spinner_Pos + 1;
+         Last_Spin := Internal_Clock;
+      end if;
+
+      --  Ensure there is a spinner configured (cannot be done before due to
+      --  pre-elaboration).
+      if Spinner.Is_Empty then
+         Spinner.Replace_Element (Spinners.Classic);
+      end if;
+
+      if Spinner_Pos not in Spinner.Reference.Element'Range then
+         Spinner_Pos := Spinner.Reference.Element'First;
+      end if;
+
       for Status of Statuses loop
          if Status.Level <= Simple_Logging.Level
            and then Pred /= Status.Text
@@ -190,7 +215,9 @@ package body Simple_Logging is
       end loop;
 
       if Length (Line) > 0 then
-         Line := Indicator & " " & Line;
+         Line :=
+           U ("" & Spinner.Reference.Element (Spinner_Pos))
+           & " " & Line;
       end if;
 
       return To_String (Line);
@@ -204,7 +231,7 @@ package body Simple_Logging is
       Line : constant String :=
                (if Old_Status /= ""
                 then Old_Status
-                else Build_Status_Line);
+                else To_String (Last_Status_Line));
    begin
       if Is_TTY and then Visible_Length (Line) > 0 then
          GNAT.IO.Put
@@ -220,8 +247,8 @@ package body Simple_Logging is
    procedure Finalize (This : in out Ongoing) is
    begin
       Debug ("Status ended: " & To_String (This.Data.Text));
-      if this.Data.Text_Autocomplete /= "" then
-         this.New_Line (To_String (This.Data.Text_Autocomplete));
+      if this.Text_Autocomplete /= "" then
+         this.New_Line (To_String (This.Text_Autocomplete));
       else
          Clear_Status_Line;
          Statuses.Difference (Status_Sets.To_Set (This.Data));
@@ -236,7 +263,7 @@ package body Simple_Logging is
    procedure New_Line (This : in out Ongoing;
                        Text : String)
    is
-      Old_Line : constant String := Build_Status_Line;
+      Old_Line : constant String := This.Build_Status_Line;
    begin
       --  Remove current status (unsure if this is needed)
       Statuses.Exclude (This.Data);
@@ -270,7 +297,7 @@ package body Simple_Logging is
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
                    Clear    : Boolean := False) is
-      Old_Line : constant String := Build_Status_Line;
+      Old_Line : constant String := This.Build_Status_Line;
    begin
       --  Update status if needed
       if New_Text /= "" or else Clear then
@@ -280,27 +307,18 @@ package body Simple_Logging is
       end if;
 
       declare
-         New_Line : constant String  := Build_Status_Line;
+         New_Line : constant String  := This.Build_Status_Line;
          New_Len  : constant Natural := Visible_Length (New_Line);
          Old_Len  : constant Natural := Visible_Length (Old_Line);
       begin
+         --  Store for future reference
+         Last_Status_Line := To_Unbounded_String (New_Line);
+
          if Is_TTY and then New_Len > 0 then
             GNAT.IO.Put (ASCII.CR
                          & New_Line
                          & (1 .. Old_Len - Natural'Min (New_Len, Old_Len) => ' '));
             C.Flush_Stdout;
-
-            --  Advance the spinner
-
-            if Last_Step = 0.0 or else
-               Internal_Clock - Last_Step >= Spinner_Period
-            then
-               Last_Step := Internal_Clock;
-               Ind_Pos   := Ind_Pos + 1;
-               if Ind_Pos > Indicator_Range'Last then
-                  Ind_Pos := Indicator_Range'First;
-               end if;
-            end if;
          else
             Clear_Status_Line (Old_Line);
          end if;
