@@ -1,5 +1,6 @@
 with GNAT.Source_Info;
 
+private with Ada.Containers.Indefinite_Holders;
 private with Ada.Finalization;
 private with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
@@ -64,7 +65,8 @@ package Simple_Logging with Preelaborate is
    --  When True, Stdout_Level also applies to the Always level
 
    Spinner_Period : Duration := 0.1;
-   --  Time between spinner frame changes
+   --  Time between spinner frame changes. TODO: make this a property of the
+   --  spinner itself.
 
    procedure Log (Message  : String;
                   Level    : Levels := Info;
@@ -157,31 +159,40 @@ private
 
    use Ada.Strings.Unbounded;
 
+   package Spinner_Holders is new
+     Ada.Containers.Indefinite_Holders (Any_Spinner);
+
    type Ongoing_Data is record
       Start             : Duration;
       Level             : Levels;
       Text              : Unbounded_String;
-      Text_Autocomplete : Unbounded_String;
    end record;
    --  Non-limited data to be stored in collections
 
    type Ongoing is new Ada.Finalization.Limited_Controlled with record
       Data : Ongoing_Data;
+
+      --  Rest of state not needed to rebuild the status line
+      Text_Autocomplete : Unbounded_String;
+      Spinner           : Spinner_Holders.Holder;
+      Spinner_Pos       : Integer := Integer'First;
    end record;
+   --  Note: we consider only a single spinner active so their status is shared
+   --  by means of global variables in the body.
 
    function "<" (L, R : Ongoing_Data) return Boolean is
      (L.Start < R.Start or else
       (L.Start = R.Start and then L.Level < R.Level) or else
-      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text) or else
-      (L.Start = R.Start and then L.Level = R.Level and then L.Text = R.Text
-       and then L.Text_Autocomplete < R.Text_Autocomplete));
+      (L.Start = R.Start and then L.Level = R.Level and then L.Text < R.Text));
 
    overriding
    procedure Finalize (This : in out Ongoing);
 
-   function Build_Status_Line return String;
+   function Build_Status_Line (This : in out Ongoing) return String;
 
    procedure Clear_Status_Line (Old_Status : String := "");
    --  Use the old status if provided, or the current one otherwise
+
+   function Default_Spinner return Any_Spinner is ("");
 
 end Simple_Logging;

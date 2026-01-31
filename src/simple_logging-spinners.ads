@@ -1,10 +1,10 @@
-package Simple_Logging.Spinners is
+package Simple_Logging.Spinners with Preelaborate is
 
    --  This package provides spinner definitions for use with the status line
    --  functionality of Simple_Logging.
 
    --  ASCII safe
-   Classic  : constant Any_Spinner := "/-\|";
+   Classic : constant Any_Spinner := "/-\|";
 
    --  Unicode spinners
    Braille_6 : constant Any_Spinner := "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
