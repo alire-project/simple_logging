@@ -130,6 +130,7 @@ package body Simple_Logging is
    Statuses  : Status_Sets.Set;
 
    Last_Status_Line : Unbounded_String; -- Used for cleanup
+   Last_Update      : Duration := 0.0;
    Last_Spin        : Duration := 0.0;
    Spinner          : Spinner_Holders.Holder;
    Spinner_Pos      : Integer := 0;
@@ -168,6 +169,7 @@ package body Simple_Logging is
             Data => (Level => Level,
                      Start => Internal_Clock,
                      Text  => To_Unbounded_String (Text)),
+            Period => <>,
             Text_Autocomplete =>
                      To_Unbounded_String (Autocomplete_Text))
       do
@@ -296,7 +298,8 @@ package body Simple_Logging is
 
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
-                   Clear    : Boolean := False) is
+                   Clear    : Boolean := False;
+                   Keyframe : Boolean := False) is
       Old_Line : constant String := This.Build_Status_Line;
    begin
       --  Update status if needed
@@ -305,6 +308,16 @@ package body Simple_Logging is
          This.Data.Text := To_Unbounded_String (New_Text);
          Statuses.Insert (This.Data);
       end if;
+
+      --  Early exit if rate-limited.
+      if Internal_Clock - Last_Update < This.Period
+         and then not Keyframe
+         and then not Clear
+      then
+         return;
+      end if;
+
+      Last_Update := Internal_Clock;
 
       declare
          New_Line : constant String  := This.Build_Status_Line;
