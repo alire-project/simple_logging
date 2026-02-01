@@ -310,7 +310,8 @@ package body Simple_Logging is
       end if;
 
       --  Early exit if rate-limited.
-      if Internal_Clock - Last_Update < This.Period
+      if This.Period > 0.0
+         and then Internal_Clock - Last_Update < This.Period
          and then not Keyframe
          and then not Clear
       then

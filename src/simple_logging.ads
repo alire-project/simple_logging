@@ -70,8 +70,8 @@ package Simple_Logging with Preelaborate is
 
    Max_Updates_Per_Second : Natural := 10;
    --  Activity updates won't exceed this many per second. Set to 0 to disable
-   --  rate limiting. Not to confuse with Spinner_Period, which only affects
-   --  the spinner animation speed.
+   --  rate limiting. Not to be confused with Spinner_Period, which only
+   --  affects the spinner animation speed.
 
    procedure Log (Message  : String;
                   Level    : Levels := Info;
@@ -145,7 +145,7 @@ package Simple_Logging with Preelaborate is
    --  update the text to display in this activity. When Clear, remove this
    --  status contribution (e.g., because we are nesting further and this one
    --  becomes irrelevant). When Keyframe is True, force an update even if
-   --  Max_FPS would prevent it.
+   --  Max_Updates_Per_Second would prevent it.
 
    procedure New_Line (This : in out Ongoing;
                        Text : String);
@@ -187,7 +187,8 @@ private
          (if Max_Updates_Per_Second = 0
           then 0.0
           else 1.0 / Max_Updates_Per_Second);
-      --  Here so changes to Max_FPS propagate to new Ongoing instances
+      --  Here so changes to Max_Updates_Per_Second propagate to new Ongoing
+      --  instances
    end record;
    --  Note: Although activities can be nested, there is only a global spinner
    --  so all that state is in the body.
