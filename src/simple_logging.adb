@@ -130,7 +130,7 @@ package body Simple_Logging is
    Statuses  : Status_Sets.Set;
 
    Last_Status_Line : Unbounded_String; -- Used for cleanup
-   Last_Update      : Duration := 0.0;
+   Last_Update      : Duration := -1.0;
    Last_Spin        : Duration := 0.0;
    Spinner          : Spinner_Holders.Holder;
    Spinner_Pos      : Integer := 0;
