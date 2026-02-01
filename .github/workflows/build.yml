@@ -28,7 +28,7 @@ jobs:
       uses: alire-project/setup-alire@v5
 
     - name: Build project
-      run: alr build
+      run: alr build --validation
 
     - name: Run tests
       run: alr test

@@ -1,5 +1,5 @@
 name = "simple_logging"
-version = "3.0.0-dev"
+version = "3.0.0"
 # Breaking changes:
 # 3.0: new completion text in Activity constructor
 
