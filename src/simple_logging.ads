@@ -68,6 +68,11 @@ package Simple_Logging with Preelaborate is
    --  Time between spinner frame changes. TODO: make this a property of the
    --  spinner itself.
 
+   Max_Updates_Per_Second : Natural := 10;
+   --  Activity updates won't exceed this many per second. Set to 0 to disable
+   --  rate limiting. Not to be confused with Spinner_Period, which only
+   --  affects the spinner animation speed.
+
    procedure Log (Message  : String;
                   Level    : Levels := Info;
                   Entity   : String := Gnat.Source_Info.Enclosing_Entity;
@@ -133,12 +138,14 @@ package Simple_Logging with Preelaborate is
 
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
-                   Clear    : Boolean := False)
+                   Clear    : Boolean := False;
+                   Keyframe : Boolean := False)
      with Pre => not (Clear and then New_Text /= "");
    --  Say that progress was made, which will advance the spinner. Optionally,
    --  update the text to display in this activity. When Clear, remove this
    --  status contribution (e.g., because we are nesting further and this one
-   --  becomes irrelevant)
+   --  becomes irrelevant). When Keyframe is True, force an update even if
+   --  Max_Updates_Per_Second would prevent it.
 
    procedure New_Line (This : in out Ongoing;
                        Text : String);
@@ -176,6 +183,12 @@ private
 
       --  Rest of state not needed to rebuild the status line
       Text_Autocomplete : Unbounded_String;
+      Period            : Duration :=
+         (if Max_Updates_Per_Second = 0
+          then 0.0
+          else 1.0 / Max_Updates_Per_Second);
+      --  Here so changes to Max_Updates_Per_Second propagate to new Ongoing
+      --  instances
    end record;
    --  Note: Although activities can be nested, there is only a global spinner
    --  so all that state is in the body.
