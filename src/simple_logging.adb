@@ -300,7 +300,7 @@ package body Simple_Logging is
                    New_Text : String := "";
                    Clear    : Boolean := False;
                    Keyframe : Boolean := False) is
-      Old_Line : constant String := This.Build_Status_Line;
+      Old_Line : constant String := To_String (Last_Status_Line);
    begin
       --  Update status if needed
       if New_Text /= "" or else Clear then
