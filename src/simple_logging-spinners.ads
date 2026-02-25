@@ -10,9 +10,12 @@ package Simple_Logging.Spinners with Preelaborate is
    Braille_6 : constant Any_Spinner := "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
    Braille_8 : constant Any_Spinner := "⡇⠇⠏⠋⠛⠙⠹⠸⢸⢰⣰⣠⣤⣄⣆⡆";
    Clocks    : constant Any_Spinner := "🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛";
+   Eight     : constant Any_Spinner := "⠋⠛⠙⠛⠚⠞⠖⠶⠦⢦⢤⣤⣠⣤⣄⣤⡤⡴⠴⠶⠲⠳⠓⠛";
+   Eight_Fast : constant Any_Spinner := "⠋⠙⠚⠖⠦⢤⣠⣄⡤⠴⠲⠓";
    Halves    : constant Any_Spinner := "◐◓◑◒";
    Moon      : constant Any_Spinner := "🌑🌒🌓🌔🌕🌖🌗🌘";
    Quarters  : constant Any_Spinner := "◴◷◶◵";
+   Snake     : constant Any_Spinner := "⡇⠇⠏⠋⠛⠙⠛⠚⠞⠖⠶⠦⢦⢤⣤⣄⣆⡆";
    Squares   : constant Any_Spinner := "◰◳◲◱";
    Triangles : constant Any_Spinner := "◢◣◤◥";
 
