@@ -270,6 +270,11 @@ package body Simple_Logging is
       --  Remove current status (unsure if this is needed)
       Statuses.Exclude (This.Data);
 
+      --  Early exit if log level below threshold
+      if This.Data.Level > Simple_Logging.Level then
+         return;
+      end if;
+
       --  Print checkmark + Text and clear remainder of line
       declare
          Done_Line : constant String  :=
@@ -299,7 +304,8 @@ package body Simple_Logging is
    procedure Step (This     : in out Ongoing;
                    New_Text : String := "";
                    Clear    : Boolean := False;
-                   Keyframe : Boolean := False) is
+                   Keyframe : Boolean := False)
+   is
       Old_Line : constant String := To_String (Last_Status_Line);
    begin
       --  Update status if needed
@@ -307,6 +313,11 @@ package body Simple_Logging is
          Statuses.Exclude (This.Data);
          This.Data.Text := To_Unbounded_String (New_Text);
          Statuses.Insert (This.Data);
+      end if;
+
+      --  Early exit if log level below threshold
+      if This.Data.Level > Simple_Logging.Level then
+         return;
       end if;
 
       --  Early exit if rate-limited.
