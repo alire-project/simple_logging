@@ -212,7 +212,8 @@ package body Simple_Logging is
            and then Status.Text /= ""
          then
             Pred := Status.Text;
-            Append (Line, Status.Text & "... ");
+            Append (Line, Status.Text
+                   & (if ASCII_Only then "... " else U ("… ")));
          end if;
       end loop;
 
