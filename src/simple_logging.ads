@@ -54,8 +54,7 @@ package Simple_Logging with Preelaborate is
    --  on ASCII.CR, will greatly pollute logfiles.
 
    ASCII_Only : Boolean := True;
-   --  Restrict the deliberate use of non-ASCII chars (currently only for the
-   --  busy status spinner).
+   --  Restrict the deliberate use of non-ASCII chars
 
    Stdout_Level : Levels := Always;
    --  Any level < Stdout_Level will be output to stderr, except for Always
