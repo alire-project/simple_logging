@@ -1,4 +1,5 @@
 with Ada.Containers.Indefinite_Ordered_Multisets;
+with Interfaces.C_Streams;
 
 with GNAT.IO;
 
@@ -23,7 +24,10 @@ package body Simple_Logging is
    procedure Log (Message  : String;
                   Level    : Levels := Info;
                   Entity   : String := Gnat.Source_Info.Enclosing_Entity;
-                  Location : String := Gnat.Source_Info.Source_Location) is
+                  Location : String := Gnat.Source_Info.Source_Location)
+   is
+      Flush_Result : Interfaces.C_Streams.int;
+      pragma Unreferenced (Flush_Result);
    begin
       if Level <= Simple_Logging.Level and then
         Filtering.Accept_Message (Message, Level, Entity, Location)
@@ -43,8 +47,12 @@ package body Simple_Logging is
               (Level /= Always or else Treat_Always_As_Error)
             then
                GNAT.IO.Put_Line (GNAT.IO.Standard_Error, Line);
+               Flush_Result :=
+                 Interfaces.C_Streams.fflush (Interfaces.C_Streams.stderr);
             else
                GNAT.IO.Put_Line (GNAT.IO.Standard_Output, Line);
+               Flush_Result :=
+                 Interfaces.C_Streams.fflush (Interfaces.C_Streams.stdout);
             end if;
          end;
       end if;
